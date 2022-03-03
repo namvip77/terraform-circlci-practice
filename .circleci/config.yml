@@ -59,11 +59,17 @@ jobs:
           name: terraform destroy
           command: |
             terraform apply -auto-approve tfdestroy
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
 
   create-a-pr:
     docker:
       - image: 'cimg/base:stable'
     steps:
+      - attach_workspace:
+          at: .
       - gh/setup
       - run:
           command: |
