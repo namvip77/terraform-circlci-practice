@@ -96,7 +96,7 @@ workflows:
 
   main-apply:
     jobs:
-      - tf-init
+      - tf-init:
           filters:
             branches:
               only:
