@@ -81,12 +81,12 @@ jobs:
 workflows:
   version: 2
   dev-init-pr:
-    filters:
+    jobs:
+      - tf-init:
+          filters:
             branches:
               only:
                 - dev
-    jobs:
-      - tf-init
       - tf-plan:
           requires:
             - tf-init
@@ -95,12 +95,12 @@ workflows:
             - tf-plan
 
   main-apply:
-    filters:
+    jobs:
+      - tf-init
+          filters:
             branches:
               only:
                 - main
-    jobs:
-      - tf-init
       - tf-destroy:
           requires:
             - tf-init
