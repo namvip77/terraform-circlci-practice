@@ -84,7 +84,7 @@ jobs:
           command: gem install -N circleci-bundle-update-pr
       - deploy:
           name: Continuous bundle update
-          command: circleci-bundle-update-pr <username> <email>
+          command: circleci-bundle-update-pr namvip77 kulnkute@gmail.com main
 
 workflows:
   version: 2
@@ -111,4 +111,3 @@ workflows:
       - continuous_bundle_update:
           requires:
             - destroy
-            
