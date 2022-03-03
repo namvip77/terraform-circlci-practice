@@ -6,7 +6,7 @@ jobs:
   tf-init:
     working_directory: /tmp/project
     docker:
-      - image: docker.mirror.hashicorp.services/hashicorp/terraform:light
+      - image: hashicorp/terraform
     steps:
       - checkout
       - run:
@@ -20,7 +20,7 @@ jobs:
 
   tf-plan:
     docker:
-      - image: docker.mirror.hashicorp.services/hashicorp/terraform:light
+      - image: hashicorp/terraform
     steps:
       - attach_workspace:
           at: .
@@ -28,7 +28,7 @@ jobs:
           name: terraform plan
           command: |
             terraform plan -out tfapply
-            terraform show tfapply > tfplan-output
+            terraform show -no-color tfapply > tfplan-output
       - persist_to_workspace:
           root: .
           paths:
@@ -36,7 +36,7 @@ jobs:
 
   tf-apply:
     docker:
-      - image: docker.mirror.hashicorp.services/hashicorp/terraform:light
+      - image: hashicorp/terraform
     steps:
       - attach_workspace:
           at: .
@@ -51,7 +51,7 @@ jobs:
 
   tf-destroy:
     docker:
-      - image: docker.mirror.hashicorp.services/hashicorp/terraform:light
+      - image: hashicorp/terraform
     steps:
       - attach_workspace:
           at: .
