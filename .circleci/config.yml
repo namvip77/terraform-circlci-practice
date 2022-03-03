@@ -1,6 +1,4 @@
 version: 2.1
-orbs:
-  gh: circleci/github-cli@1.0
 
 jobs:
   plan-apply:
@@ -60,6 +58,34 @@ jobs:
           command: |
             terraform apply -auto-approve tfdestroy
 
+  continuous_bundle_update:
+    docker:
+      - image: ruby:3.0.1-alpine
+    working_directory: /work
+    steps:
+      - run:
+          name: Install System Dependencies
+          command: |
+            # See also https://circleci.com/docs/2.0/custom-images/#required-tools-for-primary-containers
+            apk add --update --no-cache git openssh-client tar gzip ca-certificates \
+              tzdata
+            gem install -N bundler
+      - run:
+          name: Set timezone to Asia/Tokyo
+          command: cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
+      - checkout
+      - restore_cache:
+          name: Restore bundler cache
+          keys:
+            - gems-{{ .Environment.COMMON_CACHE_KEY }}-{{ checksum "Gemfile.lock" }}
+            - gems-{{ .Environment.COMMON_CACHE_KEY }}-
+      - run:
+          name: Setup requirements for continuous bundle update
+          command: gem install -N circleci-bundle-update-pr
+      - deploy:
+          name: Continuous bundle update
+          command: circleci-bundle-update-pr <username> <email>
+
 workflows:
   version: 2
   plan_approve_apply:
@@ -82,17 +108,7 @@ workflows:
       - destroy:
           requires:
             - hold-destroy
-      - gh/release:
-          # notes-file: changelog.md
-          tag: 1.0.0
-          title: The initial release
+      - continuous_bundle_update:
           requires:
             - destroy
-          context:
-            - GITHUB_CREDS
-          filters:
-            branches:
-              only:
-                - dev
-
-            # add fake comment
+            
