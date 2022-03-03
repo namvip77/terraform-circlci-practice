@@ -74,7 +74,7 @@ jobs:
       - run:
           command: |
             ls -li
-            gh pr create --title "Bugfix from $CIRCLE_BRANCH"
+            gh pr create --title "make pull request" --body "Pull request to main"
           name: Create Pull Request
 
 workflows:
@@ -82,23 +82,23 @@ workflows:
   plan_approve_apply:
     jobs:
       - plan-apply
-      - hold-apply:
-          type: approval
-          requires:
-            - plan-apply
+      # - hold-apply:
+      #     type: approval
+      #     requires:
+      #       - plan-apply
       - apply:
           requires:
-            - hold-apply
+            - plan-apply
       - plan-destroy:
           requires:
             - apply
-      - hold-destroy:
-          type: approval
-          requires:
-            - plan-destroy
+      # - hold-destroy:
+      #     type: approval
+      #     requires:
+      #       - plan-destroy
       - destroy:
           requires:
-            - hold-destroy
+            - plan-destroy
       - create-a-pr:
           requires:
             - destroy
