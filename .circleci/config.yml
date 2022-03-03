@@ -1,23 +1,40 @@
-version: 2
+version: 2.1
+orbs:
+  gh: circleci/github-cli@2.0
 
 jobs:
-  plan-apply:
+  tf-init:
     working_directory: /tmp/project
     docker:
       - image: docker.mirror.hashicorp.services/hashicorp/terraform:light
     steps:
       - checkout
       - run:
-          name: terraform init & plan
+          name: terraform init
           command: |
             terraform init -input=false
-            terraform plan -out tfapply
       - persist_to_workspace:
           root: .
           paths:
             - .
 
-  apply:
+  tf-plan:
+    docker:
+      - image: docker.mirror.hashicorp.services/hashicorp/terraform:light
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: terraform plan
+          command: |
+            terraform plan -out tfapply
+            terraform show tfapply > tfplan-output
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  tf-apply:
     docker:
       - image: docker.mirror.hashicorp.services/hashicorp/terraform:light
     steps:
@@ -32,22 +49,7 @@ jobs:
           paths:
             - .
 
-  plan-destroy:
-    docker:
-      - image: docker.mirror.hashicorp.services/hashicorp/terraform:light
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: terraform create destroy plan
-          command: |
-            terraform plan -destroy -out tfdestroy
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
-
-  destroy:
+  tf-destroy:
     docker:
       - image: docker.mirror.hashicorp.services/hashicorp/terraform:light
     steps:
@@ -56,27 +58,54 @@ jobs:
       - run:
           name: terraform destroy
           command: |
+            terraform plan -destroy -out tfdestroy
             terraform apply -auto-approve tfdestroy
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  create-a-pr:
+    docker:
+      - image: 'cimg/base:stable'
+    steps:
+      - attach_workspace:
+          at: .
+      - gh/setup
+      - run:
+          command: |
+            ls -li
+            gh pr create --title "make pull request" --body-file tfplan-output
+          name: Create Pull Request
 
 workflows:
   version: 2
-  plan_approve_apply:
+  dev-init-pr:
     jobs:
-      - plan-apply
-      - hold-apply:
-          type: approval
+      - tf-init:
+          filters:
+            branches:
+              only:
+                - dev
+      - tf-plan:
           requires:
-            - plan-apply
-      - apply:
+            - tf-init
+      - create-a-pr:
           requires:
-            - hold-apply
-      - plan-destroy:
+            - tf-plan
+
+  main-apply:
+    jobs:
+      - tf-init:
+          filters:
+            branches:
+              only:
+                - main
+      - tf-destroy:
           requires:
-            - apply
-      - hold-destroy:
-          type: approval
+            - tf-init
+      - tf-apply:
           requires:
-            - plan-destroy
-      - destroy:
-          requires:
-            - hold-destroy
+            - tf-destroy
+
+      
