@@ -67,6 +67,7 @@ jobs:
       - gh/setup
       - run:
           command: |
+            ls -li
             gh pr create --title "Bugfix from $CIRCLE_BRANCH"
           name: Create Pull Request
 
