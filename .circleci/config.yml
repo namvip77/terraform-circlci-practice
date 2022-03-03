@@ -28,7 +28,7 @@ jobs:
           name: terraform plan
           command: |
             terraform plan -out tfapply
-            terraform show -no-color > tfplan-output
+            terraform show -no-color tfapply > tfplan-output
       - persist_to_workspace:
           root: .
           paths:
