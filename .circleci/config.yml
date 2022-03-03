@@ -6,8 +6,10 @@ jobs:
   tf-init:
     working_directory: /tmp/project
     docker:
-      - image: hashicorp/terraform:1.1.6
+      - image: hashicorp/terraform
     steps:
+      - attach_workspace:
+          at: .
       - checkout
       - run:
           name: terraform init
@@ -20,7 +22,7 @@ jobs:
 
   tf-plan:
     docker:
-      - image: hashicorp/terraform:1.1.6
+      - image: hashicorp/terraform
     steps:
       - attach_workspace:
           at: .
@@ -36,7 +38,7 @@ jobs:
 
   tf-apply:
     docker:
-      - image: hashicorp/terraform:1.1.6
+      - image: hashicorp/terraform
     steps:
       - attach_workspace:
           at: .
@@ -51,7 +53,7 @@ jobs:
 
   tf-destroy:
     docker:
-      - image: hashicorp/terraform:1.1.6
+      - image: hashicorp/terraform
     steps:
       - attach_workspace:
           at: .
@@ -60,10 +62,6 @@ jobs:
           command: |
             terraform plan -destroy -out tfdestroy
             terraform apply -auto-approve tfdestroy
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
 
   create-a-pr:
     docker:
@@ -77,6 +75,10 @@ jobs:
             ls -li
             gh pr create --title "make pull request" --body-file tfplan-output
           name: Create Pull Request
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
 
 workflows:
   version: 2
