@@ -6,7 +6,7 @@ jobs:
   tf-init:
     working_directory: /tmp/project
     docker:
-      - image: hashicorp/terraform
+      - image: hashicorp/terraform:1.1.6
     steps:
       - checkout
       - run:
@@ -20,7 +20,7 @@ jobs:
 
   tf-plan:
     docker:
-      - image: hashicorp/terraform
+      - image: hashicorp/terraform:1.1.6
     steps:
       - attach_workspace:
           at: .
@@ -36,7 +36,7 @@ jobs:
 
   tf-apply:
     docker:
-      - image: hashicorp/terraform
+      - image: hashicorp/terraform:1.1.6
     steps:
       - attach_workspace:
           at: .
@@ -51,7 +51,7 @@ jobs:
 
   tf-destroy:
     docker:
-      - image: hashicorp/terraform
+      - image: hashicorp/terraform:1.1.6
     steps:
       - attach_workspace:
           at: .
