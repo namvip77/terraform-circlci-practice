@@ -1,4 +1,6 @@
 version: 2.1
+orbs:
+  gh: circleci/github-cli@2.0
 
 jobs:
   plan-apply:
@@ -58,33 +60,15 @@ jobs:
           command: |
             terraform apply -auto-approve tfdestroy
 
-  continuous_bundle_update:
+  create-a-pr:
     docker:
-      - image: ruby:3.0.1-alpine
-    # working_directory: /work
+      - image: 'cimg/base:stable'
     steps:
+      - gh/setup
       - run:
-          name: Install System Dependencies
           command: |
-            # See also https://circleci.com/docs/2.0/custom-images/#required-tools-for-primary-containers
-            apk add --update --no-cache git openssh-client tar gzip ca-certificates \
-              tzdata
-            gem install -N bundler
-      - run:
-          name: Set timezone to Asia/Tokyo
-          command: cp /usr/share/zoneinfo/Asia/Tokyo /etc/localtime
-      - checkout
-      - restore_cache:
-          name: Restore bundler cache
-          keys:
-            - gems-{{ .Environment.COMMON_CACHE_KEY }}-{{ checksum "Gemfile.lock" }}
-            - gems-{{ .Environment.COMMON_CACHE_KEY }}-
-      - run:
-          name: Setup requirements for continuous bundle update
-          command: gem install -N circleci-bundle-update-pr
-      - deploy:
-          name: Continuous bundle update
-          command: circleci-bundle-update-pr namvip77 kulnkute@gmail.com dev
+            gh pr create --title "Bugfix from $CIRCLE_BRANCH"
+          name: Create Pull Request
 
 workflows:
   version: 2
@@ -108,6 +92,6 @@ workflows:
       - destroy:
           requires:
             - hold-destroy
-      - continuous_bundle_update:
+      - create-a-pr:
           requires:
             - destroy
